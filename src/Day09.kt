@@ -14,7 +14,7 @@ fun main() {
         val startPoint = RopePoint(0, 0)
         var headAt = startPoint.copy()
         var tailAt = startPoint.copy()
-        val tailPoints = mutableSetOf<RopePoint>(startPoint)
+        val tailPoints = mutableSetOf(startPoint)
 
         input.forEach { motion ->
             val (dir, len) = motion.split(" ", limit = 2)
@@ -46,19 +46,21 @@ fun main() {
             repeat(len.toInt()) {
                 val headPoint = f(pointLocations.first())
                 pointLocations[0] = headPoint // store updated head
-                var pointFollowed = headPoint
+
+                var pointToFollow = headPoint
+
                 pointLocations.drop(1).forEachIndexed { n, tail -> // all tail points
                     var newTailPosition = tail
-                    while (pointFollowed - newTailPosition > 1) {
-                        newTailPosition = tail.advanceTo(pointFollowed)
+                    while (pointToFollow - newTailPosition > 1) {
+                        newTailPosition = tail.advanceTo(pointToFollow)
 //                        println("advancing ${n+1} to ${newTailPosition}")
-                        // moving the final tail -> update tail points
-                        if (n + 1 ==9) {
+                        // moving the final tail -> update tail points along the way
+                        if (n + 1 == 9) {
                             tailPoints += newTailPosition
                         }
                     }
                     pointLocations[n + 1] = newTailPosition
-                    pointFollowed = pointLocations[n + 1]
+                    pointToFollow = pointLocations[n + 1]
                 }
             }
 //            println("nextLocations = ${pointLocations}")
@@ -70,7 +72,7 @@ fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day09_test2")
 //    check(part1(testInput) == 13)
-//    check(part2(testInput) == 36)
+    check(part2(testInput) == 36)
 
     val input = readInput("Day09")
 //    println("p1: ${part1(input)}")
@@ -145,12 +147,13 @@ fun RopePoint.advanceTo(other: RopePoint): RopePoint {
 }
 
 operator fun RopePoint.minus(other: RopePoint): Int {
+    // this is a bit weird
     val delta1 = abs(this.first - other.first)
     val delta2 = abs(this.second - other.second)
 
     val diff = if (delta1 == 0 || delta2 == 0) { // same row or col
         max(delta1, delta2)
-    }  else if (delta1 + delta2 in 3..4)// diag
+    } else if (delta1 + delta2 in 3..4)// diag
         2
     else
         delta1 + delta2 - 1
